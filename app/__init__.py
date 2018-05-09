@@ -1,11 +1,20 @@
 from urllib2 import Request, urlopen, URLError
 
-from flask import Flask, Blueprint, session, redirect, url_for, Response
+from flask import (
+    Flask,
+    Blueprint,
+    session,
+    request,
+    redirect,
+    url_for,
+    Response
+)
 from flask_oauth import OAuth
 
 import requests
 
 import settings
+import bucketstore
 
 # TODO: Implement remote session storage for stateless operation
 # TODO: Instead of plain http proxy, proxy to S3 Bucket files
@@ -44,12 +53,26 @@ google = authentication.remote_app(
 REDIRECT_URI = '/authorized'
 
 # --------------------------------------
+# Setup S3 Access
+# --------------------------------------
+
+bucketstore.login(
+    app.config.get('AWS_ACCESS_KEY_ID'),
+    app.config.get('AWS_SECRET_ACCESS_KEY')
+)
+bucket = bucketstore.get(app.config.get('AWS_BUCKET'), create=False)
+
+# --------------------------------------
 # Main Proxy Route
 # --------------------------------------
 
 @app.route('/', defaults={'path': ''})
 @app.route('/<path:path>')
 def index(path):
+    if not path or path == '':
+        path = 'index.html'
+
+    # Process Auth
     access_token = session.get('token')
     if access_token is None:
         return redirect(url_for('login'))
@@ -65,8 +88,12 @@ def index(path):
             return redirect(url_for('login'))
         return redirect(url_for('login'))
 
-    r = requests.get('%s/%s' % (app.config['PROXY_TO'], path))
-    return Response(r.content, r.status_code, r.headers.items())
+    # handle request
+    if path in bucket.list():
+        content = bucket[path]
+        return content, 200
+
+    return 'Not Found', 404
 
 
 @app.route('/oauth/login/')
