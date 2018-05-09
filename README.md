@@ -10,7 +10,7 @@ git clone git@github.com:spbrien/glasnost.git
 
 # Install with pip
 cd glasnost
-pip install -r requirements
+pip install -r requirements.txt
 
 # Configure your application
 cp app/settings.template.py app/settings.py
