@@ -7,8 +7,19 @@ import requests
 
 import settings
 
+# TODO: Implement remote session storage for stateless operation
+# TODO: Instead of plain http proxy, proxy to S3 Bucket files
+
+# --------------------------------------
+# Create Flask Application
+# --------------------------------------
+
 app = Flask(__name__)
 app.config.from_object(settings)
+
+# --------------------------------------
+# Setup Google OAuth
+# --------------------------------------
 
 oauth = Blueprint('oauth', __name__)
 authentication = OAuth()
@@ -32,6 +43,10 @@ google = authentication.remote_app(
 
 REDIRECT_URI = '/authorized'
 
+# --------------------------------------
+# Main Proxy Route
+# --------------------------------------
+
 @app.route('/', defaults={'path': ''})
 @app.route('/<path:path>')
 def index(path):
@@ -54,33 +69,15 @@ def index(path):
     return Response(r.content, r.status_code, r.headers.items())
 
 
-@app.route('/oauth/')
-def oauth_route():
-    # Check that we are logged in via Access Token and Google
-    access_token = session.get('token', None)
-    if access_token is None:
-        return redirect(url_for('login'))
-
-    headers = {'Authorization': 'OAuth '+access_token}
-    req = Request('https://www.googleapis.com/oauth2/v1/userinfo',
-                  None, headers)
-    try:
-        res = urlopen(req)
-    except URLError, e:
-        if e.code == 401:
-            # Unauthorized - bad token
-            return redirect(url_for('login'))
-        return redirect(url_for('login'))
-
-    return redirect(url_for('index'))
-
-
 @app.route('/oauth/login/')
 def login():
     callback=url_for('authorized', _external=True)
     return google.authorize(callback=callback)
 
 
+# --------------------------------------
+# Authorized Route
+# --------------------------------------
 
 @app.route('/oauth%s' % REDIRECT_URI)
 @google.authorized_handler
@@ -91,6 +88,10 @@ def authorized(resp):
 
     return redirect(url_for('index'))
 
+
+# --------------------------------------
+# Token Handling
+# --------------------------------------
 
 @google.tokengetter
 def get_access_token():
