@@ -78,14 +78,13 @@ def index(path):
         return redirect(url_for('login'))
 
     headers = {'Authorization': 'OAuth '+access_token}
-    req = Request('https://www.googleapis.com/oauth2/v1/userinfo',
-                  None, headers)
-    try:
-        res = urlopen(req)
-    except URLError, e:
-        if e.code == 401:
-            # Unauthorized - bad token
-            return redirect(url_for('login'))
+    res = requests.get('https://www.googleapis.com/oauth2/v1/userinfo', headers=headers)
+    if res.status_code != 200:
+        return redirect(url_for('login'))
+
+    res_body = res.json()
+    print res_body.get('hd')
+    if res_body.get('hd', None) != app.config.get('GOOGLE_ORGANIZATION', None):
         return redirect(url_for('login'))
 
     # handle request
