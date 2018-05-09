@@ -167,6 +167,11 @@ class S3Key(object):
         """Returns the metadata for the key."""
         return self.bucket._boto_s3.Object(self.bucket.name, self.name).get()['Metadata']
 
+    @property
+    def content_type(self):
+        """Returns the metadata for the key."""
+        return self.bucket._boto_s3.Object(self.bucket.name, self.name).get()['ContentType']
+
     @meta.setter
     def meta(self, value):
         """Sets the metadata for the key."""

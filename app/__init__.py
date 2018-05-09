@@ -7,7 +7,7 @@ from flask import (
     request,
     redirect,
     url_for,
-    Response
+    make_response
 )
 from flask_oauth import OAuth
 
@@ -89,8 +89,8 @@ def index(path):
 
     # handle request
     if path in bucket.list():
-        content = bucket[path]
-        return content, 200
+        content = bucket.key(path)
+        return make_response(content.get(), 200, {'Content-Type': content.content_type})
 
     return 'Not Found', 404
 
