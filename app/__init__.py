@@ -83,7 +83,6 @@ def index(path):
         return redirect(url_for('login'))
 
     res_body = res.json()
-    print res_body.get('hd')
     if res_body.get('hd', None) != app.config.get('GOOGLE_ORGANIZATION', None):
         return redirect(url_for('login'))
 
