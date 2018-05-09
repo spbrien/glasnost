@@ -20,4 +20,6 @@ cp app/settings.template.py app/settings.py
 ./run.sh
 ```
 
-Visiting [http://localhost:5000](http://localhost:5000) will fetch and return an `index.html` file if it is present in your S3 bucket, otherwise a `404` error. Any path sent to Glosnost will return the S3 object having a key that matches the provided path. So `http://localhost:5000/foo/bar` will return the S3 object `foo/bar`, otherwise a `404` error.
+Visiting [http://localhost:5000](http://localhost:5000) will fetch and return an `index.html` file if it is present in your S3 bucket, otherwise a `404` error.
+
+Any path sent to Glosnost will return the S3 object having a key that matches the provided path. So `http://localhost:5000/foo/bar` will return the S3 object key `foo/bar`, otherwise a `404` error.
